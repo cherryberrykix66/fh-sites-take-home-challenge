@@ -23,7 +23,7 @@
  */
 
 var assert = require('assert');
-var PokerHand = require('../pokerHand.js');
+var PokerHand = require('../src/pokerHand.js');
 
 describe('PokerHand Ranking Tests', function() {
   

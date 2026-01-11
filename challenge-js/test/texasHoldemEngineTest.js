@@ -23,7 +23,7 @@
 
 
 var assert = require('assert');
-var TexasHoldemEngine = require('../texasHoldemEngine.js');
+var TexasHoldemEngine = require('../src/texasHoldemEngine.js');
 
 describe('TexasHoldemEngine Tests', function() {
   

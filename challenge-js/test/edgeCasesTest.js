@@ -1,6 +1,6 @@
 const assert = require('assert');
-const PokerHand = require('../pokerHand.js');
-const TexasHoldemEngine = require('../texasHoldemEngine.js');
+const PokerHand = require('../src/pokerHand.js');
+const TexasHoldemEngine = require('../src/texasHoldemEngine.js');
 
 describe('Poker Tool Suite - Edge Case Verification', function() {
 

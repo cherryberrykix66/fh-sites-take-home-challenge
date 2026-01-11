@@ -35,15 +35,18 @@
             <div id="boardCards" class="card-display"></div>
             
             <div style="display: flex; justify-content: space-around; text-align: center; margin-top: 20px;">
-                <div class="player-slot">
+                <div>
                     <p><strong>Alice</strong></p>
                     <div id="aliceCards" class="card-display"></div>
                     <div id="aliceRank" class="results"></div>
+                    <div id="aliceAdvice" style="font-style: italic; color: #ffd700; margin-top: 5px; font-size: 0.9rem;"></div>
                 </div>
-                <div class="player-slot">
+                
+                <div>
                     <p><strong>Bob</strong></p>
                     <div id="bobCards" class="card-display"></div>
                     <div id="bobRank" class="results"></div>
+                    <div id="bobAdvice" style="font-style: italic; color: #ffd700; margin-top: 5px; font-size: 0.9rem;"></div>
                 </div>
             </div>
             <h2 id="winnerAnnouncement" style="text-align:center; color: #00f5ff; margin-top: 30px; text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);"></h2>
@@ -51,7 +54,7 @@
     </div>
 </div>
 
-<script src="bundle.js"></script>
+<script src="../bundle.js"></script>
 
 <script>
     const suitIcons = { 's': '♠️', 'h': '❤️', 'd': '♦️', 'c': '♣️' };
@@ -66,19 +69,33 @@
         return `<span class="${colorClass}">${val}${suitIcons[suit]}</span> `;
     }
 
-    /* --- GAME LOGIC --- */
-    document.getElementById('playBtn').addEventListener('click', () => {
+/* --- Inside public/index.html script section --- */
+document.getElementById('playBtn').addEventListener('click', () => {
+    try {
         if (typeof window.playRound === "function") {
             const gameData = window.playRound();
+            
+            // UI Updates
             document.getElementById('gameDisplay').style.display = 'block';
             document.getElementById('boardCards').innerHTML = gameData.community.map(getIconicCard).join('');
+            
+            // Alice's Display
             document.getElementById('aliceCards').innerHTML = gameData.players[0].holeCards.map(getIconicCard).join('');
-            document.getElementById('bobCards').innerHTML = gameData.players[1].holeCards.map(getIconicCard).join('');
             document.getElementById('aliceRank').innerText = gameData.players[0].finalRankName;
+            // Display Trainer Advice from HandAnalyzer
+            document.getElementById('aliceAdvice').innerText = `Trainer: ${gameData.players[0].analysis.advice}`;
+            
+            // Bob's Display
+            document.getElementById('bobCards').innerHTML = gameData.players[1].holeCards.map(getIconicCard).join('');
             document.getElementById('bobRank').innerText = gameData.players[1].finalRankName;
+            document.getElementById('bobAdvice').innerText = `Trainer: ${gameData.players[1].analysis.advice}`;
+            
             document.getElementById('winnerAnnouncement').innerText = gameData.winnerText;
         }
-    });
+    } catch (error) {
+        console.error("Game Error:", error); // This helps catch the specific line causing issues
+    }
+});
 
     /* --- SIMULATOR LOGIC --- */
     const simBtn = document.getElementById('simBtn');

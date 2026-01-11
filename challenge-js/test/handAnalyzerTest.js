@@ -9,7 +9,7 @@
  */
 
 var assert = require('assert');
-var HandAnalyzer = require('../handAnalyzer.js');
+var HandAnalyzer = require('../src/handAnalyzer.js');
 
 describe('HandAnalyzer Educational Tests', function() {
   

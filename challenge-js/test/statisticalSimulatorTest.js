@@ -2,7 +2,7 @@
  * Statistical Simulator - Unit Tests
  */
 var assert = require('assert');
-var StatisticalSimulator = require('../statisticalSimulator.js');
+var StatisticalSimulator = require('../src/statisticalSimulator.js');
 
 describe('StatisticalSimulator Logic Tests', function() {
   

@@ -2,7 +2,7 @@
   "name": "fh-sites-take-home-challenge-js",
   "version": "1.1.0",
   "description": "Enhanced Poker Tool Suite with Hand Analyzer, Texas Hold'em Engine, and Statistical Simulator.",
-  "main": "main.js",
+  "main": "src/main.js",
   "directories": {
     "test": "test"
   },
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "build": "browserify main.js -o bundle.js",
+    "build": "browserify src/main.js -o bundle.js",
     "watch": "watchify main.js -o bundle.js -v"
   },
   "repository": {

@@ -1,15 +1,101 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 /**
- * Poker Tool Suite - Main Entry Point (Web Bundle)
- * Version: 1.1.0
+ * Poker Hand Analyzer - Educational Tool
+ * Version: 1.0.0
  * Author: Jenna James
+ * Date Modified: January 11, 2026
+ * * OVERVIEW:
+ * An educational wrapper for the PokerHand class designed to help beginners
+ * understand hand strength and poker theory.
+ */
+
+const PokerHand = require('./pokerHand.js');
+
+class HandAnalyzer {
+    constructor(handString) {
+        this.hand = new PokerHand(handString);
+        this.analysis = this.generateAnalysis();
+    }
+
+    generateAnalysis() {
+        const rank = this.hand.getRank();
+        const data = this.hand.getRankData();
+        
+        let advice = "";
+        let description = `Your best hand is a ${rank}.`;
+
+        // Educational Logic based on Rank Strength
+        switch(data.strength) {
+            case 9: // Royal Flush
+            case 8: // Straight Flush
+                advice = "This is an unbeatable monster hand. Bet for maximum value!";
+                break;
+            case 7: // Four of a Kind
+            case 6: // Full House
+                advice = "Extremely strong. You likely have the best hand.";
+                break;
+            case 5: // Flush
+            case 4: // Straight
+                advice = "Strong hand, but be cautious if the board shows pairs or higher suit possibilities.";
+                break;
+            case 2: // Two Pair
+            case 1: // One Pair
+                advice = "A moderate hand. Good for small pots, but be careful of heavy betting.";
+                break;
+            default:
+                advice = "Very weak. You generally need a bluff or a fold here unless you have a strong 'draw'.";
+        }
+
+        return {
+            rank: rank,
+            strengthScore: data.strength,
+            advice: advice,
+            cardsUsed: this.hand.cards
+        };
+    }
+
+    displayTrainerConsole() {
+        console.log("--- POKER TRAINER ANALYSIS ---");
+        console.log(`Hand: ${this.hand.handString}`);
+        console.log(`Rank: ${this.analysis.rank}`);
+        console.log(`Trainer Advice: ${this.analysis.advice}`);
+        console.log("-------------------------------");
+    }
+}
+
+module.exports = HandAnalyzer;
+},{"./pokerHand.js":3}],2:[function(require,module,exports){
+/**
+ * @file main.js
+ * @package Poker Tool Suite
+ * @version 1.1.0
+ * @author Jenna James
+ * * @description 
+ * Core entry point for the Poker Tool Suite web application. This script 
+ * orchestrates the interaction between the TexasHoldemEngine (game logic) 
+ * and the StatisticalSimulator (probability logic). 
+ * * @notes
+ * - This file is intended to be bundled via Browserify: 
+ * `browserify src/main.js -o bundle.js`
+ * - Functions are explicitly attached to the `window` object to ensure
+ * availability in the global browser scope after bundling.
+ * - Implements requestAnimationFrame for the simulator to maintain a
+ * responsive UI (60fps) during heavy Monte Carlo computations.
+ * * @dependencies
+ * - ./texasHoldemEngine.js   : Handles 7-card best-hand evaluation.
+ * - ./statisticalSimulator.js: Manages probability math and HTML table generation.
+ * - ./pokerHand.js           : Basic 5-card parsing and ranking.
  */
 
 const TexasHoldemEngine = require('./texasHoldemEngine.js');
 const StatisticalSimulator = require('./statisticalSimulator.js');
 const PokerHand = require('./pokerHand.js');
+const HandAnalyzer = require('./handAnalyzer.js');
 
-// Helper to deal a random deck
+/**
+ * Generates a standard 52-card deck and performs a Fisher-Yates shuffle.
+ * @returns {string[]} An array of shuffled card strings (e.g., ["As", "10h"]).
+ */
 function dealNewDeck() {
     const s = ['s','h','d','c'], v = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
     let d = []; 
@@ -21,7 +107,12 @@ function dealNewDeck() {
     return d;
 }
 
-// EXPOSE PLAY ROUND TO WINDOW
+/**
+ * Handles the "Quick Play" feature.
+ * Deals cards to two players and the board, then determines the winner.
+ * @exposed window.playRound
+ */
+// Update your window.playRound function
 window.playRound = function() {
     const deck = dealNewDeck();
     const aliceHole = [deck.pop(), deck.pop()];
@@ -36,21 +127,45 @@ window.playRound = function() {
     const engine = new TexasHoldemEngine(community, players);
     const winners = engine.determineWinner();
 
+    // Safely retrieve the calculated results for both players from the engine
+    const aliceResult = engine.players.find(p => p.name === 'Alice');
+    const bobResult = engine.players.find(p => p.name === 'Bob');
+
+    // Ensure finalHandString exists before passing to HandAnalyzer
+    const aliceAnalysis = new HandAnalyzer(aliceResult.finalHandString || "");
+    const bobAnalysis = new HandAnalyzer(bobResult.finalHandString || "");
+
     let winnerText = winners.length > 1 
         ? "Split Pot!" 
         : `${winners[0].name} Wins!`;
 
     return {
         community,
-        players,
+        players: [
+            { 
+                ...aliceResult, 
+                analysis: aliceAnalysis.analysis 
+            },
+            { 
+                ...bobResult, 
+                analysis: bobAnalysis.analysis 
+            }
+        ],
         winnerText
     };
 };
 
-// EXPOSE ITERATIVE SIMULATION TO WINDOW
+/**
+ * Runs a Monte Carlo simulation for poker hand frequencies.
+ * Uses iterative "chunking" to prevent blocking the browser's main thread.
+ * * @param {number} totalTrials - Number of hands to simulate.
+ * @param {function} updateCallback - Function to call with (progressPercentage, resultsHTML).
+ * @exposed window.runSimulationIterative
+ */
 window.runSimulationIterative = function(totalTrials, updateCallback) {
     const sim = new StatisticalSimulator();
-    // Initialize stats manually to ensure we start fresh
+    
+    // Reset stats to zero for a clean simulation run
     sim.stats = {
         'Royal Flush': 0, 'Straight Flush': 0, 'Four of a Kind': 0,
         'Full House': 0, 'Flush': 0, 'Straight': 0, 
@@ -58,13 +173,15 @@ window.runSimulationIterative = function(totalTrials, updateCallback) {
     };
 
     let processed = 0;
-    const chunkSize = Math.max(1, Math.floor(totalTrials / 50)); // Update bar 50 times
+    // Calculate chunk size to ensure the UI updates roughly 50 times
+    const chunkSize = Math.max(1, Math.floor(totalTrials / 50));
 
     function step() {
         const target = Math.min(processed + chunkSize, totalTrials);
         
         for (let i = processed; i < target; i++) {
             let deck = sim.shuffle(sim.generateDeck());
+            // Evaluate a random 5-card hand
             let hand = new PokerHand(deck.slice(0, 5).join(' '));
             sim.stats[hand.getRank()]++;
         }
@@ -73,18 +190,21 @@ window.runSimulationIterative = function(totalTrials, updateCallback) {
         const progress = (processed / totalTrials) * 100;
         
         if (processed < totalTrials) {
+            // Update progress bar without injecting table yet
             updateCallback(progress, null);
-            // requestAnimationFrame tells the browser to update the UI before the next chunk
+            // Schedule the next chunk for the next animation frame
             requestAnimationFrame(step);
         } else {
+            // Simulation complete: generate and return final HTML table
             const tableHTML = sim.generateHTMLResults(totalTrials);
             updateCallback(100, tableHTML);
         }
     }
     
+    // Begin the first iteration
     step();
 };
-},{"./pokerHand.js":2,"./statisticalSimulator.js":3,"./texasHoldemEngine.js":4}],2:[function(require,module,exports){
+},{"./handAnalyzer.js":1,"./pokerHand.js":3,"./statisticalSimulator.js":4,"./texasHoldemEngine.js":5}],3:[function(require,module,exports){
 /**
  * Poker Hand Ranker - Texas Hold'em Engine Compatible
  * Version: 1.1.1
@@ -192,7 +312,7 @@ class PokerHand {
 }
 
 module.exports = PokerHand;
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /**
  * Poker Statistical Simulator - Monte Carlo Method
  * Version: 1.1.0
@@ -286,7 +406,7 @@ class StatisticalSimulator {
 }
 
 module.exports = StatisticalSimulator;
-},{"./pokerHand.js":2}],4:[function(require,module,exports){
+},{"./pokerHand.js":3}],5:[function(require,module,exports){
 
 /**
  * Texas Hold'em Game Engine
@@ -386,4 +506,4 @@ class TexasHoldemEngine {
 }
 
 module.exports = TexasHoldemEngine;
-},{"./pokerHand.js":2}]},{},[1]);
+},{"./pokerHand.js":3}]},{},[2]);
