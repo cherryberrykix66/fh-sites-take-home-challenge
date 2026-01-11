@@ -1,11 +1,23 @@
 /**
  * Poker Hand Analyzer - Educational Tool
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
- * An educational wrapper for the PokerHand class designed to help beginners
- * understand hand strength and poker theory.
+ * This module serves as an educational wrapper for the PokerHand class. It is
+ * designed to translate raw poker rank data into actionable strategic advice 
+ * for beginners. It bridges the gap between technical hand evaluation and 
+ * actual gameplay theory.
+ * * LOGIC & REASONING:
+ * 1. Data Normalization: Receives hand data from the engine and ensures numeric 
+ * strength scores are correctly typed for comparison logic.
+ * 2. Strategic Mapping: Implements a tiered advice system based on the numeric 
+ * strength (0-9) of a hand. Each tier provides specific instructions on 
+ * betting behavior (e.g., value betting vs. cautious checking).
+ * 3. Error Handling: Provides a robust guard against empty or corrupted 
+ * hand strings, ensuring the UI does not break when the engine is between rounds.
+ * 4. UI Compatibility: Returns a structured analysis object that includes 
+ * the original cards used, allowing the front-end to highlight winning combinations.
  */
 
 const PokerHand = require('./pokerHand.js');
@@ -50,7 +62,7 @@ generateAnalysis() {
             advice = "Strong hand with a Flush.";
             break;
         case 4: 
-            // EXACT MATCH for your failing 'caution' test
+            // EXACT MATCH for failing 'caution' test
             advice = "Strong hand, but be cautious if the board shows pairs.";
             break;
         case 3:
@@ -60,7 +72,7 @@ generateAnalysis() {
             advice = "A moderate hand. Good for small pots.";
             break;
         default:
-            // EXACT MATCH for your 'bluff or fold' test
+            // EXACT MATCH for 'bluff or fold' test
             advice = "Very weak. You generally need a bluff or a fold here.";
     }
 

@@ -1,25 +1,24 @@
 
 /**
  * Poker Hand Ranker - Unit Tests
- * * Version: 1.1.1
+ * Version: 1.1.1
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
  * This test suite utilizes the Mocha framework and Node.js 'assert' library 
- * to validate the accuracy of the PokerHand ranking logic. 
+ * to validate the accuracy of the PokerHand ranking logic. It serves as the 
+ * primary quality gate for hand evaluation accuracy.
  * * TEST COVERAGE:
- * - High-Value Hands: Royal Flush, Straight Flush.
- * - Multi-Card Patterns: Four of a Kind, Full House, Three of a Kind.
- * - Set Patterns: Two Pair, One Pair.
- * - Sequence & Suit Patterns: Flush, Straight.
- * 
- * - Use Cases:
- * Validates ranking logic, numeric strength scoring, and kicker value ordering.
- * 
- * - Edge Cases: The "Wheel" Straight (Ace-low sequence) and High Card evaluation.
- * 
+ * 1. Standard Ranks: Validates all 10 standard poker hands from High Card 
+ * to Royal Flush.
+ * 2. Engine Compatibility: Ensures that 'getRankData' returns the correct 
+ * numeric strength (0-9) for sorting players in the TexasHoldemEngine.
+ * 3. Kicker Logic: Verifies that 'valueOrder' is correctly populated for 
+ * complex hands like Two Pair and Full House to resolve potential ties.
+ * 4. Special Sequences: Explicitly tests the "Wheel" (A-2-3-4-5) to ensure 
+ * the Ace is correctly downgraded to a value of 1 for that specific straight.
  * * RUNNING TESTS:
- * Execute 'npm test' in the /challenge-js directory to run this suite.
+ * Execute 'npm test' in the root directory.
  */
 
 var assert = require('assert');

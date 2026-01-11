@@ -1,3 +1,26 @@
+/**
+ * Poker Tool Suite - Edge Case Verification Tests
+ * Version: 1.1.0
+ * Author: Jenna James
+ * Date Modified: January 11, 2026
+ * * OVERVIEW:
+ * This test suite targets "boundary" scenarios and complex hand configurations 
+ * that often cause logic failures in poker engines. It ensures the system 
+ * handles non-standard card strings and high-level ranking nuances.
+ * * TEST COVERAGE:
+ * 1. 3-Character Strings: Validates that "10" cards don't break the suit-parsing 
+ * logic used by the PokerHand class.
+ * 2. Duplicate Values: Ensures that hands with sequential values but duplicate 
+ * ranks (e.g., 8-7-6-6-5) are correctly identified as pairs rather than 
+ * false straights.
+ * 3. King-High vs. Royal: Verifies the distinction between a Straight Flush 
+ * and a Royal Flush.
+ * 4. Kicker Evaluation: Checks that the engine isolates the highest pairs 
+ * and kickers in 7-card boards.
+ * 5. Unordered Inputs: Confirms that the parser can handle "Wheels" (A-2-3-4-5) 
+ * even if the string is provided in a non-sequential order.
+ */
+
 const assert = require('assert');
 const PokerHand = require('../src/pokerHand.js');
 const TexasHoldemEngine = require('../src/texasHoldemEngine.js');
@@ -37,7 +60,7 @@ describe('Poker Tool Suite - Edge Case Verification', function() {
         
         // Alice's best 5-card hand should be A-A-K-K-Q (Two Pair, Aces and Kings)
         assert.strictEqual(results[0].finalRankName, 'Two Pair');
-        // If your engine stores the specific pairs, you'd verify they are Aces and Kings
+        // If engine stores the specific pairs,  verify they are Aces and Kings
     });
 
     // 5. Unordered Input Strings & The Wheel

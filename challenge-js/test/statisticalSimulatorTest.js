@@ -1,5 +1,20 @@
 /**
- * Statistical Simulator - Unit Tests
+ * Poker Statistical Simulator - Unit Tests
+ * Version: 1.1.0
+ * Author: Jenna James
+ * Date Modified: January 11, 2026
+ * * OVERVIEW:
+ * This test suite validates the core utility functions of the StatisticalSimulator.
+ * It ensures that the mathematical foundation of the Monte Carlo simulations—
+ * the deck generation and the randomization algorithm—is reliable and follows
+ * standard probability requirements.
+ * * TEST COVERAGE:
+ * 1. Deck Integrity: Confirms that the generator produces exactly 52 unique 
+ * cards with no duplicates or missing suits/values.
+ * 2. Randomization (Entropy): Validates the Fisher-Yates shuffle implementation 
+ * by comparing a fresh deck against a shuffled deck to ensure high entropy.
+ * 3. Data Structure: Verifies that the internal stats object is correctly 
+ * structured to receive ranking counts during a trial run.
  */
 var assert = require('assert');
 var StatisticalSimulator = require('../src/statisticalSimulator.js');

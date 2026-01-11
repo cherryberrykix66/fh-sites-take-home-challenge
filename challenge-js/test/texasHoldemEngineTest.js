@@ -1,23 +1,24 @@
 /**
  * Texas Hold'em Game Engine - Unit Tests
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
- * This test suite validates the coordination logic of the TexasHoldemEngine, 
- * ensuring it correctly identifies the best 5-card hand from the 7 available 
- * cards and accurately declares winners among multiple players.
+ * This test suite validates the coordination logic of the TexasHoldemEngine. 
+ * It ensures the engine correctly identifies the best 5-card combination 
+ * from the 7 available cards (2 hole + 5 community) and accurately declares 
+ * winners or split pots.
  * * TEST COVERAGE:
- * - Win Conditions: Validates standard wins (e.g., Royal Flush vs. Straight).
- * - Combination Logic: Ensures the engine correctly iterates through all 21 
- * possible 5-card subsets from a 7-card pool.
- * - Split Pots: Verifies that multiple players with identical hand strengths 
- * are all identified as winners.
- * - Board Play: Tests scenarios where the best hand is formed entirely by 
- * community cards.
- * * RUNNING TESTS:
- * Execute 'npm test' in the /challenge-js directory to run this suite alongside 
- * the core PokerHand tests.
+ * 1. Win Conditions: Validates standard head-to-head scenarios (e.g., Royal 
+ * Flush vs. Straight).
+ * 2. Combination Logic: Ensures the engine successfully iterates through all 21 
+ * possible 5-card subsets to find the absolute strongest hand for a player.
+ * 3. Split Pots: Verifies that multiple players with identical hand strengths 
+ * are correctly identified as co-winners.
+ * 4. Property Validation: Confirms that the engine attaches the 'finalHandString' 
+ * and 'finalRankName' to player objects for use by the UI and HandAnalyzer.
+ * 5. Board Play: Tests scenarios where the community cards themselves form 
+ * the best possible hand.
  */
 
 

@@ -1,11 +1,23 @@
 /**
  * Poker Hand Analyzer - Unit Tests
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
- * Validates that the educational advice and strategic descriptions 
- * correctly match the identified poker ranks.
+ * This test suite validates the educational output and strategic logic of the 
+ * HandAnalyzer module. It ensures that the "Trainer" advice correctly maps 
+ * to identified hand ranks and that the UI-required data structures are 
+ * correctly formed.
+ * * TEST COVERAGE:
+ * 1. Advice Accuracy: Verifies specific keyword assertions (e.g., "unbeatable", 
+ * "caution", "bluff") based on the strength of the hand provided.
+ * 2. Data Integrity: Checks that the analyzer correctly persists the cards 
+ * being analyzed so they can be highlighted in the browser UI.
+ * 3. Regression Testing: Specifically validates the fix for the "cardsUsed" 
+ * property, ensuring it returns an array with a valid .length property to 
+ * prevent TypeError crashes in the build.
+ * 4. Boundary Testing: Confirms behavior for extreme ranks (Royal Flush vs. 
+ * High Card) to ensure the full spectrum of advice is active.
  */
 
 var assert = require('assert');

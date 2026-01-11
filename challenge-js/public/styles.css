@@ -1,4 +1,24 @@
-/* Jenna's Poker Tool Suite - Modern Nightlife Theme */
+/**
+ * Poker Tool Suite - "Modern Nightlife" Stylesheet
+ * Version: 1.1.0
+ * Author: Jenna James
+ * Date Modified: January 11, 2026
+ * * OVERVIEW:
+ * This stylesheet defines the visual identity of the Poker Tool Suite, utilizing 
+ * a "Modern Nightlife" aesthetic. It prioritizes high-contrast neon accents 
+ * against a deep oceanic background to evoke the atmosphere of a high-end 
+ * digital casino.
+ * * LOGIC & REASONING:
+ * 1. Design Tokens: Uses CSS Variables (:root) for centralized color management, 
+ * ensuring consistency across components and making future "theming" easier.
+ * 2. Visual Hierarchy: Implements a "Glassmorphism" effect using semi-transparent 
+ * overlays and vibrant purple borders to separate functional dashboard sections.
+ * 3. Interactive Feedback: Buttons utilize CSS transitions and box-shadow glows 
+ * to provide immediate visual confirmation of user hover and click actions.
+ * 4. Responsive Layout: Employs Flexbox and dynamic unit scaling to ensure 
+ * the dashboard remains usable across mobile, tablet, and desktop viewports.
+ */
+ 
 :root {
     --midnight-navy: #0b132b;
     --electric-cyan: #00f5ff;
