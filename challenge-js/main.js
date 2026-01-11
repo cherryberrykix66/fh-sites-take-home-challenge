@@ -40,7 +40,6 @@ window.playRound = function() {
 
 window.runSimulation = function(trials) {
     const sim = new StatisticalSimulator();
-    // Assuming your simulator has a method that returns a string or object for the UI
-    sim.runSimulation(trials); 
-    return `Simulation of ${trials} hands complete. Check console for details.`;
+    // Return the HTML table string directly to index.html
+    return sim.runSimulation(trials);
 };

@@ -1,12 +1,11 @@
 /**
  * Poker Statistical Simulator - Monte Carlo Method
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
- * This tool runs millions of random trials to calculate the mathematical 
- * probability of hitting specific poker ranks. It serves as a validation 
- * tool for the PokerHand ranking logic.
+ * This tool runs random trials to calculate the mathematical probability 
+ * of hitting specific poker ranks. Enhanced for Web UI compatibility.
  */
 
 const PokerHand = require('./pokerHand.js');
@@ -38,14 +37,15 @@ class StatisticalSimulator {
         return deck;
     }
 
+    /**
+     * Runs the simulation and returns a formatted HTML table for the Web UI.
+     */
     runSimulation(trials = 100000) {
         this.stats = {
             'Royal Flush': 0, 'Straight Flush': 0, 'Four of a Kind': 0,
             'Full House': 0, 'Flush': 0, 'Straight': 0, 
             'Three of a Kind': 0, 'Two Pair': 0, 'One Pair': 0, 'High Card': 0
         };
-
-        console.log(`Starting simulation of ${trials.toLocaleString()} hands...`);
 
         for (let i = 0; i < trials; i++) {
             let deck = this.shuffle(this.generateDeck());
@@ -56,17 +56,37 @@ class StatisticalSimulator {
             this.stats[rank]++;
         }
 
-        this.displayResults(trials);
+        return this.generateHTMLResults(trials);
     }
 
-    displayResults(trials) {
-        console.log("\n--- SIMULATION RESULTS ---");
+    /**
+     * Helper to generate a professional HTML table for browser rendering.
+     */
+    generateHTMLResults(trials) {
+        let htmlTable = `
+            <table style="width:100%; border-collapse: collapse; margin-top: 10px; color: white;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #35654d; text-align: left;">
+                        <th style="padding: 8px;">Rank</th>
+                        <th style="padding: 8px;">Count</th>
+                        <th style="padding: 8px;">Probability</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
         for (let rank in this.stats) {
             let count = this.stats[rank];
             let percentage = ((count / trials) * 100).toFixed(4);
-            console.log(`${rank.padEnd(16)}: ${count.toString().padStart(8)} | ${percentage}%`);
+            htmlTable += `
+                <tr style="border-bottom: 1px solid #444;">
+                    <td style="padding: 8px;">${rank}</td>
+                    <td style="padding: 8px;">${count.toLocaleString()}</td>
+                    <td style="padding: 8px; color: #ffd700;">${percentage}%</td>
+                </tr>`;
         }
-        console.log("--------------------------\n");
+
+        htmlTable += `</tbody></table>`;
+        return htmlTable;
     }
 }
 
