@@ -29,9 +29,14 @@ generateAnalysis() {
     const data = this.hand.getRankData();
     const strength = Number(data.strength);
 
-    // Guard clause for invalid hands
-    if (strength === -1 || !this.hand.handString) {
-        return { rank: "N/A", strengthScore: 0, advice: "No cards detected to analyze." };
+    // Guard for invalid hands (e.g., from an empty string)
+    if (strength === -1 || !this.hand.handString || this.hand.handString.trim() === "") {
+        return {
+            rank: "N/A",
+            strengthScore: 0,
+            advice: "No cards detected to analyze.",
+            cardsUsed: [] // FIX: Test requires .length, so provide an empty array
+        };
     }
 
     let advice = "";
@@ -46,7 +51,7 @@ generateAnalysis() {
             advice = "Strong hand with a Flush.";
             break;
         case 4: 
-            // This exact phrase is required to pass your unit test
+            // EXACT MATCH for your failing 'caution' test
             advice = "Strong hand, but be cautious if the board shows pairs.";
             break;
         case 3:
@@ -56,13 +61,15 @@ generateAnalysis() {
             advice = "A moderate hand. Good for small pots.";
             break;
         default:
+            // EXACT MATCH for your 'bluff or fold' test
             advice = "Very weak. You generally need a bluff or a fold here.";
     }
 
     return {
         rank: rank,
         strengthScore: strength,
-        advice: advice
+        advice: advice,
+        cardsUsed: this.hand.cards // FIX: Ensures the test can read .length
     };
 }
 
@@ -244,14 +251,15 @@ window.runSimulationIterative = function(totalTrials, updateCallback) {
 class PokerHand {
   constructor(handString) {
     this.handString = handString;
-  // Guard against empty strings to prevent "Ghost Straight Flush"
-  if (!handString || handString.trim() === "") {
-    this.cards = [];
-    this.values = [];
-    this.suits = [];
-    this.rankData = { name: 'N/A', strength: -1 }; 
-    return;
-  }
+    
+    // GUARD: Stops evaluation if the hand is empty or invalid
+    if (!handString || handString.trim() === "") {
+        this.cards = [];
+        this.values = [];
+        this.suits = [];
+        this.rankData = { name: 'N/A', strength: -1 }; 
+        return;
+    }
     this.cards = handString.split(' ');
 
     const valueMap = {
@@ -423,10 +431,9 @@ class StatisticalSimulator {
 
 module.exports = StatisticalSimulator;
 },{"./pokerHand.js":3}],5:[function(require,module,exports){
-
 /**
  * Texas Hold'em Game Engine
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
@@ -443,17 +450,7 @@ module.exports = StatisticalSimulator;
  * combinations to isolate the single highest-ranking 5-card hand.
  * 4. Winner Determination: The engine compares the best hands of all participating 
  * players using a hierarchical rankOrder to declare a winner or a split pot.
- * * FEATURES:
- * - 7-Card Support: Implements the "best 5 of 7" rule essential for Texas Hold'em.
- * - Multi-Player Handling: Capable of evaluating and comparing any number of 
- * player hands simultaneously.
- * - Tie/Split Pot Detection: Correctly identifies scenarios where multiple players 
- * share the same winning rank.
- * - Modular Integration: Designed to work seamlessly with the PokerHand 
- * evaluation logic.
  */
-
-
 
 // Helper to get all combinations of 5 from an array of 7
 function getCombinations(cards, size) {
@@ -476,52 +473,55 @@ const PokerHand = require('./pokerHand.js');
 class TexasHoldemEngine {
     constructor(communityCards, players) {
         this.communityCards = communityCards; // Array: ['7s', '8s', '9s', '10s', '2h']
-        this.players = players; // Array of objects: [{ name: 'Alice', holeCards: ['As', 'Ks'] }]
+        this.players = players; // Array: [{ name: 'Alice', holeCards: ['As', 'Ks'] }]
     }
 
     determineWinner() {
-    let bestOverallRank = -1;
-    let winners = [];
+        let bestOverallRank = -1;
+        let winners = [];
 
-    const rankOrder = [
-        'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
-        'Straight', 'Flush', 'Full House', 'Four of a Kind', 
-        'Straight Flush', 'Royal Flush'
-    ];
+        // Rank names in order of strength for comparison
+        const rankOrder = [
+            'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
+            'Straight', 'Flush', 'Full House', 'Four of a Kind', 
+            'Straight Flush', 'Royal Flush'
+        ];
 
-    this.players.forEach(player => {
-        const allSevenCards = [...player.holeCards, ...this.communityCards];
-        const combos = getCombinations(allSevenCards, 5);
-        
-        let playerBestRankIndex = -1;
-        let playerBestHandString = ""; // ADD THIS to track the actual cards
-
-        combos.forEach(combo => {
-            const hand = new PokerHand(combo);
-            const rankName = hand.getRank();
-            const rankIndex = rankOrder.indexOf(rankName);
+        this.players.forEach(player => {
+            const allSevenCards = [...player.holeCards, ...this.communityCards];
+            const combos = getCombinations(allSevenCards, 5);
             
-            if (rankIndex > playerBestRankIndex) {
-                playerBestRankIndex = rankIndex;
-                playerBestHandString = combo; // CAPTURE the string here
+            let playerBestRankIndex = -1;
+            let playerBestHandString = ""; // Track the actual 5-card string
+
+            combos.forEach(combo => {
+                const hand = new PokerHand(combo);
+                const rankName = hand.getRank();
+                const rankIndex = rankOrder.indexOf(rankName);
+                
+                // If a stronger hand is found, update the player's best rank and cards
+                if (rankIndex > playerBestRankIndex) {
+                    playerBestRankIndex = rankIndex;
+                    playerBestHandString = combo; // Capture the winning combination
+                }
+            });
+
+            // Store results on the player object for the main UI
+            player.finalRankIndex = playerBestRankIndex;
+            player.finalRankName = rankOrder[playerBestRankIndex];
+            player.finalHandString = playerBestHandString; // Save for educational analyzer
+
+            // Comparison logic to find the overall round winner
+            if (playerBestRankIndex > bestOverallRank) {
+                bestOverallRank = playerBestRankIndex;
+                winners = [player];
+            } else if (playerBestRankIndex === bestOverallRank) {
+                winners.push(player); // Identified a tie/split pot
             }
         });
 
-        // SAVE the captured string so main.js can pass it to the analyzer
-        player.finalRankIndex = playerBestRankIndex;
-        player.finalRankName = rankOrder[playerBestRankIndex];
-        player.finalHandString = playerBestHandString; // ADD THIS LINE
-
-        if (playerBestRankIndex > bestOverallRank) {
-            bestOverallRank = playerBestRankIndex;
-            winners = [player];
-        } else if (playerBestRankIndex === bestOverallRank) {
-            winners.push(player);
-        }
-    });
-
-    return winners;
-}
+        return winners;
+    }
 }
 
 module.exports = TexasHoldemEngine;

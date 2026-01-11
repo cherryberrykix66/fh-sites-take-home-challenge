@@ -30,14 +30,15 @@
 class PokerHand {
   constructor(handString) {
     this.handString = handString;
-  // Guard against empty strings to prevent "Ghost Straight Flush"
-  if (!handString || handString.trim() === "") {
-    this.cards = [];
-    this.values = [];
-    this.suits = [];
-    this.rankData = { name: 'N/A', strength: -1 }; 
-    return;
-  }
+    
+    // GUARD: Stops evaluation if the hand is empty or invalid
+    if (!handString || handString.trim() === "") {
+        this.cards = [];
+        this.values = [];
+        this.suits = [];
+        this.rankData = { name: 'N/A', strength: -1 }; 
+        return;
+    }
     this.cards = handString.split(' ');
 
     const valueMap = {

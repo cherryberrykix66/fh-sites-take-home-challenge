@@ -1,7 +1,6 @@
-
 /**
  * Texas Hold'em Game Engine
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
@@ -18,17 +17,7 @@
  * combinations to isolate the single highest-ranking 5-card hand.
  * 4. Winner Determination: The engine compares the best hands of all participating 
  * players using a hierarchical rankOrder to declare a winner or a split pot.
- * * FEATURES:
- * - 7-Card Support: Implements the "best 5 of 7" rule essential for Texas Hold'em.
- * - Multi-Player Handling: Capable of evaluating and comparing any number of 
- * player hands simultaneously.
- * - Tie/Split Pot Detection: Correctly identifies scenarios where multiple players 
- * share the same winning rank.
- * - Modular Integration: Designed to work seamlessly with the PokerHand 
- * evaluation logic.
  */
-
-
 
 // Helper to get all combinations of 5 from an array of 7
 function getCombinations(cards, size) {
@@ -51,52 +40,55 @@ const PokerHand = require('./pokerHand.js');
 class TexasHoldemEngine {
     constructor(communityCards, players) {
         this.communityCards = communityCards; // Array: ['7s', '8s', '9s', '10s', '2h']
-        this.players = players; // Array of objects: [{ name: 'Alice', holeCards: ['As', 'Ks'] }]
+        this.players = players; // Array: [{ name: 'Alice', holeCards: ['As', 'Ks'] }]
     }
 
     determineWinner() {
-    let bestOverallRank = -1;
-    let winners = [];
+        let bestOverallRank = -1;
+        let winners = [];
 
-    const rankOrder = [
-        'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
-        'Straight', 'Flush', 'Full House', 'Four of a Kind', 
-        'Straight Flush', 'Royal Flush'
-    ];
+        // Rank names in order of strength for comparison
+        const rankOrder = [
+            'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
+            'Straight', 'Flush', 'Full House', 'Four of a Kind', 
+            'Straight Flush', 'Royal Flush'
+        ];
 
-    this.players.forEach(player => {
-        const allSevenCards = [...player.holeCards, ...this.communityCards];
-        const combos = getCombinations(allSevenCards, 5);
-        
-        let playerBestRankIndex = -1;
-        let playerBestHandString = ""; // ADD THIS to track the actual cards
-
-        combos.forEach(combo => {
-            const hand = new PokerHand(combo);
-            const rankName = hand.getRank();
-            const rankIndex = rankOrder.indexOf(rankName);
+        this.players.forEach(player => {
+            const allSevenCards = [...player.holeCards, ...this.communityCards];
+            const combos = getCombinations(allSevenCards, 5);
             
-            if (rankIndex > playerBestRankIndex) {
-                playerBestRankIndex = rankIndex;
-                playerBestHandString = combo; // CAPTURE the string here
+            let playerBestRankIndex = -1;
+            let playerBestHandString = ""; // Track the actual 5-card string
+
+            combos.forEach(combo => {
+                const hand = new PokerHand(combo);
+                const rankName = hand.getRank();
+                const rankIndex = rankOrder.indexOf(rankName);
+                
+                // If a stronger hand is found, update the player's best rank and cards
+                if (rankIndex > playerBestRankIndex) {
+                    playerBestRankIndex = rankIndex;
+                    playerBestHandString = combo; // Capture the winning combination
+                }
+            });
+
+            // Store results on the player object for the main UI
+            player.finalRankIndex = playerBestRankIndex;
+            player.finalRankName = rankOrder[playerBestRankIndex];
+            player.finalHandString = playerBestHandString; // Save for educational analyzer
+
+            // Comparison logic to find the overall round winner
+            if (playerBestRankIndex > bestOverallRank) {
+                bestOverallRank = playerBestRankIndex;
+                winners = [player];
+            } else if (playerBestRankIndex === bestOverallRank) {
+                winners.push(player); // Identified a tie/split pot
             }
         });
 
-        // SAVE the captured string so main.js can pass it to the analyzer
-        player.finalRankIndex = playerBestRankIndex;
-        player.finalRankName = rankOrder[playerBestRankIndex];
-        player.finalHandString = playerBestHandString; // ADD THIS LINE
-
-        if (playerBestRankIndex > bestOverallRank) {
-            bestOverallRank = playerBestRankIndex;
-            winners = [player];
-        } else if (playerBestRankIndex === bestOverallRank) {
-            winners.push(player);
-        }
-    });
-
-    return winners;
-}
+        return winners;
+    }
 }
 
 module.exports = TexasHoldemEngine;
