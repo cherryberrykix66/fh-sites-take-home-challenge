@@ -28,30 +28,42 @@ generateAnalysis() {
     const data = this.hand.getRankData();
     
     let advice = "";
-    const strength = Number(data.strength); // Ensure numeric comparison
+    // FORCE numeric conversion to prevent type-mismatch bugs
+    const strength = Number(data.strength); 
 
-    if (!this.hand.handString || this.hand.handString === "") {
-        advice = "No cards detected to analyze.";
-    } else {
-        switch(strength) {
-            case 9: case 8:
-                advice = "This is an unbeatable monster hand. Bet for maximum value!";
-                break;
-            case 7: case 6:
-                advice = "Extremely strong. You likely have the best hand.";
-                break;
-            case 5: case 4:
-                advice = "Strong hand, but be cautious if the board shows pairs or higher suit possibilities.";
-                break;
-            case 3: // Add missing Three of a Kind
-                advice = "Solid hand. Three of a kind is often a winning hand.";
-                break;
-            case 2: case 1:
-                advice = "A moderate hand. Good for small pots, but be careful of heavy betting.";
-                break;
-            default:
-                advice = "Very weak. You generally need a bluff or a fold here unless you have a strong 'draw'.";
-        }
+    // NEW: Explicitly handle empty or invalid hand strings
+    if (!this.hand.handString || this.hand.handString.trim() === "") {
+        return {
+            rank: "N/A",
+            strengthScore: 0,
+            advice: "No cards detected to analyze.",
+            cardsUsed: []
+        };
+    }
+
+    switch(strength) {
+        case 9: 
+        case 8: // Straight Flush
+            advice = "This is an unbeatable monster hand. Bet for maximum value!";
+            break;
+        case 7: 
+        case 6: // Full House
+            advice = "Extremely strong. You likely have the best hand.";
+            break;
+        case 5: // Flush
+        case 4: // Straight
+            // FIX: Ensure this string contains 'be cautious' exactly for the unit test
+            advice = "Strong hand, but be cautious if the board shows pairs or higher suit possibilities.";
+            break; 
+        case 3: // Three of a Kind
+            advice = "Solid hand. Three of a kind is often a winner.";
+            break;
+        case 2: 
+        case 1: // Pair
+            advice = "A moderate hand. Good for small pots, but be careful of heavy betting.";
+            break;
+        default:
+            advice = "Very weak. You generally need a bluff or a fold here unless you have a strong 'draw'.";
     }
 
     return {
