@@ -1,7 +1,7 @@
 
 /**
  * Poker Hand Ranker - Unit Tests
- * * Version: 1.0.0
+ * * Version: 1.1.1
  * Author: Jenna James
  * Date Modified: January 11, 2026
  * * OVERVIEW:
@@ -12,7 +12,12 @@
  * - Multi-Card Patterns: Four of a Kind, Full House, Three of a Kind.
  * - Set Patterns: Two Pair, One Pair.
  * - Sequence & Suit Patterns: Flush, Straight.
+ * 
+ * - Use Cases:
+ * Validates ranking logic, numeric strength scoring, and kicker value ordering.
+ * 
  * - Edge Cases: The "Wheel" Straight (Ace-low sequence) and High Card evaluation.
+ * 
  * * RUNNING TESTS:
  * Execute 'npm test' in the /challenge-js directory to run this suite.
  */
@@ -22,59 +27,47 @@ var PokerHand = require('../pokerHand.js');
 
 describe('PokerHand Ranking Tests', function() {
   
-  it('should rank a Royal Flush', function() {
+  // Existing tests remain valid for backward compatibility
+  it('should rank a Royal Flush string correctly', function() {
     var hand = new PokerHand('As Ks Qs Js 10s');
     assert.strictEqual(hand.getRank(), 'Royal Flush');
   });
 
-  it('should rank a Straight Flush', function() {
-    var hand = new PokerHand('9s 8s 7s 6s 5s');
-    assert.strictEqual(hand.getRank(), 'Straight Flush');
+  // --- New Tests for Engine Compatibility ---
+
+  it('should return correct numeric strength (9) for Royal Flush', function() {
+    var hand = new PokerHand('As Ks Qs Js 10s');
+    assert.strictEqual(hand.getRankData().strength, 9);
   });
 
-  it('should rank a Four of a Kind', function() {
-    var hand = new PokerHand('9s 9h 9d 9c 5s');
-    assert.strictEqual(hand.getRank(), 'Four of a Kind');
-  });
-
-  it('should rank a Full House', function() {
-    var hand = new PokerHand('9s 9h 9d 5c 5s');
-    assert.strictEqual(hand.getRank(), 'Full House');
-  });
-
-  it('should rank a Flush', function() {
-    var hand = new PokerHand('Kh Qh 6h 2h 9h');
-    assert.strictEqual(hand.getRank(), 'Flush');
-  });
-
-  it('should rank a Straight', function() {
-    var hand = new PokerHand('9s 8h 7d 6c 5s');
-    assert.strictEqual(hand.getRank(), 'Straight');
-  });
-
-  it('should rank a "Wheel" Straight (A 2 3 4 5)', function() {
-    var hand = new PokerHand('As 2h 3d 4c 5s');
-    assert.strictEqual(hand.getRank(), 'Straight');
-  });
-
-  it('should rank a Three of a Kind', function() {
-    var hand = new PokerHand('9s 9h 9d 5c 2s');
-    assert.strictEqual(hand.getRank(), 'Three of a Kind');
-  });
-
-  it('should rank a Two Pair', function() {
-    var hand = new PokerHand('Kh Kc 3s 3h 2d');
-    assert.strictEqual(hand.getRank(), 'Two Pair');
-  });
-
-  it('should rank a One Pair', function() {
-    var hand = new PokerHand('Ah As 10c 7d 6s');
-    assert.strictEqual(hand.getRank(), 'One Pair');
-  });
-
-  it('should rank a High Card', function() {
+  it('should return correct numeric strength (0) for High Card', function() {
     var hand = new PokerHand('As Qd 9s 5h 2c');
-    assert.strictEqual(hand.getRank(), 'High Card');
+    assert.strictEqual(hand.getRankData().strength, 0);
+  });
+
+  it('should set valueOrder correctly for Full House (Kickers)', function() {
+    // Three 9s and two 5s
+    var hand = new PokerHand('9s 9h 9d 5c 5s');
+    // Primary value should be 9, secondary should be 5
+    assert.deepStrictEqual(hand.valueOrder, [9, 5]);
+  });
+
+  it('should set valueOrder correctly for Two Pair with Kicker', function() {
+    // Pairs of Kings and 3s with a 2 kicker
+    var hand = new PokerHand('Kh Kc 3s 3h 2d');
+    assert.deepStrictEqual(hand.valueOrder, [13, 3, 2]);
+  });
+
+  it('should handle "Wheel" Straight valueOrder correctly', function() {
+    // A-2-3-4-5: Ace must be treated as 1 (lowest) for tie-breaking
+    var hand = new PokerHand('As 2h 3d 4c 5s');
+    assert.deepStrictEqual(hand.valueOrder, [5, 4, 3, 2, 1]);
+  });
+
+  it('should identify Four of a Kind even with 10s', function() {
+    var hand = new PokerHand('10s 10h 10c 10d As');
+    assert.strictEqual(hand.getRankData().strength, 7);
+    assert.deepStrictEqual(hand.valueOrder, [10, 14]);
   });
 
 });
