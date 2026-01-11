@@ -10,11 +10,16 @@
         .container { max-width: 800px; margin: 0 auto; background: #2a2a2a; border-radius: 12px; padding: 25px; border: 2px solid var(--poker-green); }
         h1 { color: var(--gold); text-align: center; border-bottom: 2px solid var(--poker-green); padding-bottom: 10px; }
         .section { margin-bottom: 30px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; }
-        .btn { background: var(--poker-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        .btn { background: var(--poker-green); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px; transition: 0.2s; }
         .btn:hover { background: #458565; }
+        .btn:disabled { background: #555; cursor: not-allowed; }
         .card-display { font-size: 2rem; margin: 15px 0; min-height: 3rem; }
-        .results { background: #000; padding: 15px; border-radius: 5px; font-family: monospace; border-left: 4px solid var(--gold); }
+        .results { background: #000; padding: 15px; border-radius: 5px; font-family: monospace; border-left: 4px solid var(--gold); margin-top: 15px; }
         .red { color: #ff4d4d; }
+        
+        /* Progress Bar Styles */
+        #progressContainer { width: 100%; background: #444; border-radius: 5px; margin: 15px 0; display: none; overflow: hidden; }
+        #progressBar { width: 0%; height: 20px; background: var(--gold); transition: width 0.1s linear; }
     </style>
 </head>
 <body>
@@ -25,8 +30,16 @@
     <div class="section">
         <h3>📊 Statistical Simulator</h3>
         <p>Run random hands to check mathematical probabilities.</p>
-        <button class="btn" id="simBtn">Run Simulation</button>
-        <div id="simResults" class="results" style="margin-top:10px; display:none;"></div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" id="simBtn">Run Simulation</button>
+            <button class="btn" id="resetSimBtn" style="background: #666;">Clear Results</button>
+        </div>
+        
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
+
+        <div id="simResults" class="results" style="display:none;"></div>
     </div>
 
     <div class="section">
@@ -35,7 +48,7 @@
         
         <div id="gameDisplay" style="display:none;">
             <p><strong>Board:</strong> <span id="boardCards" class="card-display"></span></p>
-            <div style="display: flex; justify-content: space-around;">
+            <div style="display: flex; justify-content: space-around; text-align: center;">
                 <div>
                     <p><strong>Alice</strong></p>
                     <div id="aliceCards" class="card-display"></div>
@@ -47,7 +60,7 @@
                     <div id="bobRank" class="results"></div>
                 </div>
             </div>
-            <h2 id="winnerAnnouncement" style="text-align:center; color: var(--gold);"></h2>
+            <h2 id="winnerAnnouncement" style="text-align:center; color: var(--gold); margin-top: 20px;"></h2>
         </div>
     </div>
 </div>
@@ -55,8 +68,6 @@
 <script src="bundle.js"></script>
 
 <script>
-    /* UI Helper for card icons 
-    */
     const suitIcons = { 's': '♠️', 'h': '❤️', 'd': '♦️', 'c': '♣️' };
 
     function getIconicCard(cardStr) {
@@ -66,33 +77,52 @@
         return `<span class="${colorClass}">${val}${suitIcons[suit]}</span> `;
     }
 
-    /* EventListeners to trigger the logic contained in bundle.js
-    */
+    /* --- GAME LOGIC --- */
     document.getElementById('playBtn').addEventListener('click', () => {
-        // This function should be exposed in your bundle.js via window or a global export
-        if (typeof playRound === "function") {
-            const gameData = playRound(); // Assuming playRound returns the dealt cards and winner
-            
+        if (typeof window.playRound === "function") {
+            const gameData = window.playRound();
             document.getElementById('gameDisplay').style.display = 'block';
             document.getElementById('boardCards').innerHTML = gameData.community.map(getIconicCard).join('');
             document.getElementById('aliceCards').innerHTML = gameData.players[0].holeCards.map(getIconicCard).join('');
             document.getElementById('bobCards').innerHTML = gameData.players[1].holeCards.map(getIconicCard).join('');
-            
             document.getElementById('aliceRank').innerText = gameData.players[0].finalRankName;
             document.getElementById('bobRank').innerText = gameData.players[1].finalRankName;
             document.getElementById('winnerAnnouncement').innerText = gameData.winnerText;
-        } else {
-            console.error("The playRound function was not found in bundle.js");
         }
     });
 
-    document.getElementById('simBtn').addEventListener('click', () => {
-        if (typeof runSimulation === "function") {
-            const stats = runSimulation(1000);
-            const resDiv = document.getElementById('simResults');
-            resDiv.style.display = 'block';
-            resDiv.innerHTML = stats; // Assuming your sim returns a formatted string
-        }
+    /* --- SIMULATOR LOGIC --- */
+    const simBtn = document.getElementById('simBtn');
+    const resetBtn = document.getElementById('resetSimBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
+    const simResults = document.getElementById('simResults');
+
+    simBtn.addEventListener('click', () => {
+        const trials = 10000; // Increased for better accuracy
+        simBtn.disabled = true;
+        progressContainer.style.display = 'block';
+        simResults.style.display = 'none';
+        progressBar.style.width = '0%';
+
+        window.runSimulationIterative(trials, (progress, finalTable) => {
+            progressBar.style.width = progress + '%';
+            
+            if (finalTable) {
+                simResults.innerHTML = finalTable;
+                simResults.style.display = 'block';
+                simBtn.disabled = false;
+                simBtn.innerText = "Rerun Simulation";
+            }
+        });
+    });
+
+    resetBtn.addEventListener('click', () => {
+        simResults.style.display = 'none';
+        progressContainer.style.display = 'none';
+        progressBar.style.width = '0%';
+        simBtn.innerText = "Run Simulation";
+        simBtn.disabled = false;
     });
 </script>
 </body>
