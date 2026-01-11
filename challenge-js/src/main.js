@@ -60,29 +60,21 @@ window.playRound = function() {
     const engine = new TexasHoldemEngine(community, players);
     const winners = engine.determineWinner();
 
-    // Safely retrieve the calculated results for both players from the engine
-    const aliceResult = engine.players.find(p => p.name === 'Alice');
-    const bobResult = engine.players.find(p => p.name === 'Bob');
+    // MATCH THESE NAMES EXACTLY
+    const aliceData = engine.players.find(p => p.name === 'Alice');
+    const bobData = engine.players.find(p => p.name === 'Bob');
 
-    // Ensure finalHandString exists before passing to HandAnalyzer
-    const aliceAnalysis = new HandAnalyzer(aliceResult.finalHandString || "");
-    const bobAnalysis = new HandAnalyzer(bobResult.finalHandString || "");
+    // Pass the actual finalHandString to the analyzer
+    const aliceAnalysis = new HandAnalyzer(aliceData.finalHandString || "");
+    const bobAnalysis = new HandAnalyzer(bobData.finalHandString || "");
 
-    let winnerText = winners.length > 1 
-        ? "Split Pot!" 
-        : `${winners[0].name} Wins!`;
+    let winnerText = winners.length > 1 ? "Split Pot!" : `${winners[0].name} Wins!`;
 
     return {
         community,
         players: [
-            { 
-                ...aliceResult, 
-                analysis: aliceAnalysis.analysis 
-            },
-            { 
-                ...bobResult, 
-                analysis: bobAnalysis.analysis 
-            }
+            { ...aliceData, analysis: aliceAnalysis.analysis },
+            { ...bobData, analysis: bobAnalysis.analysis }
         ],
         winnerText
     };

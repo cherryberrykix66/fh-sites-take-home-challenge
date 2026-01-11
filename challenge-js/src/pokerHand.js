@@ -102,6 +102,7 @@ class PokerHand {
     // the internal state (like valueOrder) is updated.
     return this.getRankData().name;
   }
+  
 }
 
 module.exports = PokerHand;
