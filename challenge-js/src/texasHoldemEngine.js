@@ -55,45 +55,48 @@ class TexasHoldemEngine {
     }
 
     determineWinner() {
-        let bestOverallRank = -1;
-        let winners = [];
+    let bestOverallRank = -1;
+    let winners = [];
 
-        // Rank names in order of strength for comparison
-        const rankOrder = [
-            'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
-            'Straight', 'Flush', 'Full House', 'Four of a Kind', 
-            'Straight Flush', 'Royal Flush'
-        ];
+    const rankOrder = [
+        'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
+        'Straight', 'Flush', 'Full House', 'Four of a Kind', 
+        'Straight Flush', 'Royal Flush'
+    ];
 
-        this.players.forEach(player => {
-            const allSevenCards = [...player.holeCards, ...this.communityCards];
-            const combos = getCombinations(allSevenCards, 5);
+    this.players.forEach(player => {
+        const allSevenCards = [...player.holeCards, ...this.communityCards];
+        const combos = getCombinations(allSevenCards, 5);
+        
+        let playerBestRankIndex = -1;
+        let playerBestHandString = ""; // ADD THIS to track the actual cards
+
+        combos.forEach(combo => {
+            const hand = new PokerHand(combo);
+            const rankName = hand.getRank();
+            const rankIndex = rankOrder.indexOf(rankName);
             
-            let playerBestRankIndex = -1;
-
-            combos.forEach(combo => {
-                const hand = new PokerHand(combo);
-                const rankName = hand.getRank();
-                const rankIndex = rankOrder.indexOf(rankName);
-                
-                if (rankIndex > playerBestRankIndex) {
-                    playerBestRankIndex = rankIndex;
-                }
-            });
-
-            player.finalRankIndex = playerBestRankIndex;
-            player.finalRankName = rankOrder[playerBestRankIndex];
-
-            if (playerBestRankIndex > bestOverallRank) {
-                bestOverallRank = playerBestRankIndex;
-                winners = [player];
-            } else if (playerBestRankIndex === bestOverallRank) {
-                winners.push(player); // Potential tie
+            if (rankIndex > playerBestRankIndex) {
+                playerBestRankIndex = rankIndex;
+                playerBestHandString = combo; // CAPTURE the string here
             }
         });
 
-        return winners;
-    }
+        // SAVE the captured string so main.js can pass it to the analyzer
+        player.finalRankIndex = playerBestRankIndex;
+        player.finalRankName = rankOrder[playerBestRankIndex];
+        player.finalHandString = playerBestHandString; // ADD THIS LINE
+
+        if (playerBestRankIndex > bestOverallRank) {
+            bestOverallRank = playerBestRankIndex;
+            winners = [player];
+        } else if (playerBestRankIndex === bestOverallRank) {
+            winners.push(player);
+        }
+    });
+
+    return winners;
+}
 }
 
 module.exports = TexasHoldemEngine;

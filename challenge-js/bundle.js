@@ -27,51 +27,42 @@ class HandAnalyzer {
 generateAnalysis() {
     const rank = this.hand.getRank();
     const data = this.hand.getRankData();
-    
-    let advice = "";
-    // FORCE numeric conversion to prevent type-mismatch bugs
-    const strength = Number(data.strength); 
+    const strength = Number(data.strength);
 
-    // NEW: Explicitly handle empty or invalid hand strings
-    if (!this.hand.handString || this.hand.handString.trim() === "") {
-        return {
-            rank: "N/A",
-            strengthScore: 0,
-            advice: "No cards detected to analyze.",
-            cardsUsed: []
-        };
+    // Guard clause for invalid hands
+    if (strength === -1 || !this.hand.handString) {
+        return { rank: "N/A", strengthScore: 0, advice: "No cards detected to analyze." };
     }
 
+    let advice = "";
     switch(strength) {
-        case 9: 
-        case 8: // Straight Flush
+        case 9: case 8:
             advice = "This is an unbeatable monster hand. Bet for maximum value!";
             break;
-        case 7: 
-        case 6: // Full House
+        case 7: case 6:
             advice = "Extremely strong. You likely have the best hand.";
             break;
-        case 5: // Flush
-        case 4: // Straight
-            // FIX: Ensure this string contains 'be cautious' exactly for the unit test
-            advice = "Strong hand, but be cautious if the board shows pairs or higher suit possibilities.";
-            break; 
-        case 3: // Three of a Kind
-            advice = "Solid hand. Three of a kind is often a winner.";
+        case 5:
+            advice = "Strong hand with a Flush.";
             break;
-        case 2: 
-        case 1: // Pair
-            advice = "A moderate hand. Good for small pots, but be careful of heavy betting.";
+        case 4: 
+            // This exact phrase is required to pass your unit test
+            advice = "Strong hand, but be cautious if the board shows pairs.";
+            break;
+        case 3:
+            advice = "Solid hand with Three of a Kind.";
+            break;
+        case 2: case 1:
+            advice = "A moderate hand. Good for small pots.";
             break;
         default:
-            advice = "Very weak. You generally need a bluff or a fold here unless you have a strong 'draw'.";
+            advice = "Very weak. You generally need a bluff or a fold here.";
     }
 
     return {
         rank: rank,
         strengthScore: strength,
-        advice: advice,
-        cardsUsed: this.hand.cards
+        advice: advice
     };
 }
 
@@ -253,6 +244,14 @@ window.runSimulationIterative = function(totalTrials, updateCallback) {
 class PokerHand {
   constructor(handString) {
     this.handString = handString;
+  // Guard against empty strings to prevent "Ghost Straight Flush"
+  if (!handString || handString.trim() === "") {
+    this.cards = [];
+    this.values = [];
+    this.suits = [];
+    this.rankData = { name: 'N/A', strength: -1 }; 
+    return;
+  }
     this.cards = handString.split(' ');
 
     const valueMap = {
@@ -481,45 +480,48 @@ class TexasHoldemEngine {
     }
 
     determineWinner() {
-        let bestOverallRank = -1;
-        let winners = [];
+    let bestOverallRank = -1;
+    let winners = [];
 
-        // Rank names in order of strength for comparison
-        const rankOrder = [
-            'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
-            'Straight', 'Flush', 'Full House', 'Four of a Kind', 
-            'Straight Flush', 'Royal Flush'
-        ];
+    const rankOrder = [
+        'High Card', 'One Pair', 'Two Pair', 'Three of a Kind', 
+        'Straight', 'Flush', 'Full House', 'Four of a Kind', 
+        'Straight Flush', 'Royal Flush'
+    ];
 
-        this.players.forEach(player => {
-            const allSevenCards = [...player.holeCards, ...this.communityCards];
-            const combos = getCombinations(allSevenCards, 5);
+    this.players.forEach(player => {
+        const allSevenCards = [...player.holeCards, ...this.communityCards];
+        const combos = getCombinations(allSevenCards, 5);
+        
+        let playerBestRankIndex = -1;
+        let playerBestHandString = ""; // ADD THIS to track the actual cards
+
+        combos.forEach(combo => {
+            const hand = new PokerHand(combo);
+            const rankName = hand.getRank();
+            const rankIndex = rankOrder.indexOf(rankName);
             
-            let playerBestRankIndex = -1;
-
-            combos.forEach(combo => {
-                const hand = new PokerHand(combo);
-                const rankName = hand.getRank();
-                const rankIndex = rankOrder.indexOf(rankName);
-                
-                if (rankIndex > playerBestRankIndex) {
-                    playerBestRankIndex = rankIndex;
-                }
-            });
-
-            player.finalRankIndex = playerBestRankIndex;
-            player.finalRankName = rankOrder[playerBestRankIndex];
-
-            if (playerBestRankIndex > bestOverallRank) {
-                bestOverallRank = playerBestRankIndex;
-                winners = [player];
-            } else if (playerBestRankIndex === bestOverallRank) {
-                winners.push(player); // Potential tie
+            if (rankIndex > playerBestRankIndex) {
+                playerBestRankIndex = rankIndex;
+                playerBestHandString = combo; // CAPTURE the string here
             }
         });
 
-        return winners;
-    }
+        // SAVE the captured string so main.js can pass it to the analyzer
+        player.finalRankIndex = playerBestRankIndex;
+        player.finalRankName = rankOrder[playerBestRankIndex];
+        player.finalHandString = playerBestHandString; // ADD THIS LINE
+
+        if (playerBestRankIndex > bestOverallRank) {
+            bestOverallRank = playerBestRankIndex;
+            winners = [player];
+        } else if (playerBestRankIndex === bestOverallRank) {
+            winners.push(player);
+        }
+    });
+
+    return winners;
+}
 }
 
 module.exports = TexasHoldemEngine;
